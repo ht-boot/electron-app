@@ -1,0 +1,66 @@
+.audioPlayerControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  height: var(--ev-height);
+  width: 100%;
+  padding: 0 40px;
+
+  .icons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 2;
+    .iconLast,
+    .iconNext,
+    .iconPlay {
+      font-size: 22px;
+      cursor: pointer;
+      transition: background-color border-radius 0.3s;
+      color: #333;
+      margin: 0 15px;
+      &:hover {
+        color: #666;
+      }
+    }
+
+    .iconPlay {
+      font-size: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  .audioPlayerProgressBar {
+    flex: 5;
+    width: 100%;
+    .infoTime {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .progressBar {
+      width: 100%;
+      height: 5px;
+      border-radius: 5px;
+      background-color: rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      margin: 8px 0;
+
+      .progress {
+        height: 100%;
+        width: 0;
+        background-color: rgba(0, 0, 0, 0.6);
+        border-radius: 5px;
+      }
+    }
+  }
+
+  .audioPlayerLeft {
+    flex: 3;
+    text-align: center;
+  }
+}
