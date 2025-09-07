@@ -25,15 +25,26 @@ const AudioPlayer = (): React.JSX.Element => {
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
+    if (!audio) return
+    // 更新进度条
     const updateProgress = (): void => {
       if (audio && !audio.paused) {
         setProgress((audio.currentTime / audio.duration) * 100)
       }
     }
+
+    // 监听音频播放完毕事件, 更新播放状态设置为false
+    const handleEnded = (): void => {
+      setIsPlaying(false)
+    }
+
     // 监听音频播放进度，更新进度条
     audio.addEventListener('timeupdate', updateProgress)
+    audio.addEventListener('ended', handleEnded)
+
     return () => {
       audio.removeEventListener('timeupdate', updateProgress)
+      audio.removeEventListener('ended', handleEnded)
     }
   }, [audio])
 
@@ -113,7 +124,12 @@ const AudioPlayer = (): React.JSX.Element => {
             <div className={styles.progress} style={{ width: `${progress}%` }}></div>
           </div>
         </div>
-        <div className={styles.audioPlayerLeft}>Left Side</div>
+        <div className={styles.audioPlayerLeft}>
+          <i className={`iconfont icon-ziyuan ${styles.icon}`} onClick={() => {}}></i>
+          <i className={`iconfont icon-shengyin ${styles.icon}`} onClick={() => {}}></i>
+          <i className={`iconfont icon-caidan ${styles.icon}`} onClick={() => {}}></i>
+          <i className={`iconfont icon-more ${styles.icon}`} onClick={() => {}}></i>
+        </div>
       </div>
     </>
   )

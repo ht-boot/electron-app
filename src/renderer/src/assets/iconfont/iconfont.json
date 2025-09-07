@@ -6,6 +6,41 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "1207794",
+      "name": "保存顺序",
+      "font_class": "baocunshunxu",
+      "unicode": "e67b",
+      "unicode_decimal": 59003
+    },
+    {
+      "icon_id": "11177667",
+      "name": "循环",
+      "font_class": "ziyuan",
+      "unicode": "e617",
+      "unicode_decimal": 58903
+    },
+    {
+      "icon_id": "27402302",
+      "name": "菜单",
+      "font_class": "caidan",
+      "unicode": "ee15",
+      "unicode_decimal": 60949
+    },
+    {
+      "icon_id": "6263343",
+      "name": "声音",
+      "font_class": "shengyin",
+      "unicode": "e66a",
+      "unicode_decimal": 58986
+    },
+    {
+      "icon_id": "269810",
+      "name": "more",
+      "font_class": "more",
+      "unicode": "e6ad",
+      "unicode_decimal": 59053
+    },
+    {
       "icon_id": "2594367",
       "name": "下一个",
       "font_class": "xiayige",

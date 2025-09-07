@@ -7,7 +7,8 @@
 const createAudio = (url: string | null): HTMLAudioElement => {
   const audio = new Audio()
   audio.src = url ? url : 'http://music.163.com/song/media/outer/url?id=2699961119.mp3'
-  audio.loop = true
+  audio.loop = false
+  audio.autoplay = false
   return audio
 }
 
