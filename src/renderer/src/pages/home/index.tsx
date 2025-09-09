@@ -4,6 +4,11 @@ import { RootState } from '../../store'
 import initLyrics from '../../utils/initLyrics'
 import styles from './index.module.less'
 
+// 假设在某个页面里
+const searchMusic = async (): Promise<void> => {
+  const data = await window.api.searchMusic('昙花一现雨及时')
+  console.log('搜索结果：', data)
+}
 interface LyricItem {
   t: number // 时间戳，应该是数字类型
   c: string // 歌词内容
@@ -59,6 +64,7 @@ const Home = (): React.JSX.Element => {
   return (
     <>
       <div className={styles.home}>
+        <div onClick={() => searchMusic()}>加载</div>
         {/* 专辑封面展示区域 */}
         <div className={styles.album}>
           <img src={data[currentIndex].pic} alt="" />

@@ -215,13 +215,7 @@ const AudioPlayer = (): React.JSX.Element => {
           <i className={`iconfont icon-ziyuan ${styles.icon}`} onClick={() => {}}></i>
           <i className={`iconfont icon-shengyin ${styles.icon}`} onClick={() => {}}></i>
           <i className={`iconfont icon-caidan ${styles.icon}`} onClick={() => {}}></i>
-          <Popover
-            content={options}
-            title={'主题切换'}
-            trigger="click"
-            placement="topRight"
-            // onOpenChange={handleOpenChange}
-          >
+          <Popover content={options} title={'主题切换'} trigger="click" placement="topRight">
             <i className={`iconfont icon-more ${styles.icon}`} onClick={() => {}}></i>
           </Popover>
         </div>

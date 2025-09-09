@@ -15,7 +15,7 @@ const AppLayout: React.FC = () => {
         </Content>
       </Layout>
       <Footer className={styles.footer}>
-        <AudioPlayer />
+        <AudioPlayer /> {/* 音频播放器 */}
       </Footer>
     </>
   )

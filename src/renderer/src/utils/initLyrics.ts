@@ -2,8 +2,6 @@ interface ToLRC {
   [key: string]: any
 }
 
-console.log('initLyrics.ts')
-
 const oLRC: ToLRC = {
   ms: [] //歌词数组{t:时间,c:歌词}
 }
