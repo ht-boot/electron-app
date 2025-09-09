@@ -1,0 +1,57 @@
+.home {
+  display: flex;
+  height: 100%;
+  padding: 32px 80px;
+  box-sizing: border-box;
+  color: var(--ev-c-color);
+
+  .album {
+    display: flex;
+    align-items: center;
+    margin-right: 140px;
+    img {
+      border-radius: 10px;
+      width: 300px;
+      height: 300px;
+    }
+  }
+
+  .songInfo {
+    font-size: 26px;
+    font-weight: 600;
+    text-align: center;
+    .author {
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+
+    .lyrics {
+      font-size: 16px;
+      height: 400px;
+      width: 400px;
+      overflow-y: scroll; /* 允许垂直滚动 */
+      scroll-behavior: smooth; /* 平滑滚动效果 */
+      /* 添加渐变遮罩，使顶部和底部的歌词淡出 */
+      mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+      // 隐藏滚动条
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    .lyricLine {
+      padding: 8px 0;
+      transition: all 0.3s ease; /* 添加过渡效果 */
+      opacity: 0.6; /* 非活动行半透明 */
+      cursor: pointer;
+    }
+
+    .lyricLine.active {
+      font-size: 1.2em;
+      font-weight: bold;
+      opacity: 1;
+      transform: scale(1.05); /* 活动行轻微放大 */
+      color: #97536b;
+    }
+  }
+}

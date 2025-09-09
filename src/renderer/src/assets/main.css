@@ -5,8 +5,10 @@ body {
   height: 100vh;
   overflow: hidden;
   user-select: none;
-  background-color: var(--ev-bgc-white);
+  background-color: var(--ev-c-bg);
+  color: var(--ev-c-color);
   backdrop-filter: blur(10px); /* 模糊效果 */
+  box-sizing: border-box;
 }
 
 @media (max-width: 720px) {

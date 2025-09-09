@@ -24,8 +24,12 @@
     "@ant-design/icons": "^5.6.1",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
+    "@reduxjs/toolkit": "^2.9.0",
     "antd": "^5.27.3",
-    "electron-updater": "^6.3.9"
+    "axios": "^1.11.0",
+    "electron-updater": "^6.3.9",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.8.2"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
