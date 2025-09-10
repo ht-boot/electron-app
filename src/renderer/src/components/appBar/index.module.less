@@ -1,0 +1,31 @@
+.appBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: transparent;
+  padding: 0 20px;
+  color: var(--ev-c-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  -webkit-app-region: drag; /* 允许拖动 */
+
+  .searchInput {
+    color: var(--ev-c-color);
+    width: 30%;
+    -webkit-app-region: no-drag; /* 输入框不可拖动 */
+    background-color: var(--ev-c-bg);
+    border-color: var(--ec-c-bg-progress-bar);
+  }
+
+  input::placeholder {
+    color: var(--ec-c-bg-progress-bar);
+  }
+
+  .buttons button {
+    -webkit-app-region: no-drag; /* 按钮不可拖动 */
+    margin-left: 5px;
+  }
+}

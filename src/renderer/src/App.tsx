@@ -1,14 +1,14 @@
 import { Route, Routes } from 'react-router-dom'
 import AppLayout from './pages/layout/index'
 import About from './pages/about/index'
-import Home from './pages/home/index'
-import TitleBar from './components/electronBar/electronBar'
+import Home from './pages/lyrics/index'
+import AppBar from './components/appBar'
 
 function App(): React.JSX.Element {
   return (
     <>
       <div className="App">
-        <TitleBar />
+        <AppBar />
         <Routes>
           <Route path="/" element={<AppLayout />}>
             <Route path="/" element={<Home />} />

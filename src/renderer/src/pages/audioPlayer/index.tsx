@@ -1,103 +1,33 @@
 import React, { useMemo, useState, useEffect, useRef, memo } from 'react'
+import { message } from 'antd'
 import useAudioTime from '../../hooks/useAudioTime'
 import createAudio from '../../utils/createAudio'
-import { Popover } from 'antd'
-import { MoonOutlined, RedoOutlined, SunOutlined } from '@ant-design/icons'
 import { updateMusicCurrentTime, updateMusicCurrentPlay } from '../../store/baseSlice/base'
 import { useSelector, useDispatch } from 'react-redux'
 import { RootState, AppDispatch } from '@renderer/store'
+import EVTheme from '../../components/theme'
 import styles from './index.module.less'
+
 const AudioPlayer = (): React.JSX.Element => {
-  const { data } = useSelector((state: RootState) => state.base.musicList)
+  const data = useSelector((state: RootState) => state.base.musicList)
   const musicCurrentPlay = useSelector((state: RootState) => state.base.musicCurrentPlay)
   const dispatch = useDispatch<AppDispatch>()
 
+  const [messageApi, contextHolder] = message.useMessage()
+
   // 创建 Audio 对象, 进行函数缓存， 避免组件更新重复创建audio
-  const audio = useMemo(() => createAudio(data[musicCurrentPlay].url), [])
-
-  const [theme, setTheme] = useState<string>('light')
-
-  const options = (
-    <div className={styles.options}>
-      <p
-        className={`${styles.checkTheme} ${theme == 'system' ? styles.active : ''}`}
-        onClick={(_e) => handleChangeTheme('system', _e)}
-      >
-        跟随系统
-        <RedoOutlined style={{ marginLeft: '10px' }} />
-      </p>
-      <p
-        className={`${styles.checkTheme} ${theme == 'light' ? styles.active : ''}`}
-        onClick={(_e) => handleChangeTheme('light', _e)}
-      >
-        浅色主题
-        <SunOutlined style={{ marginLeft: '10px' }} />
-      </p>
-      <p
-        className={`${styles.checkTheme} ${theme == 'dark' ? styles.active : ''}`}
-        onClick={(_e) => handleChangeTheme('dark', _e)}
-      >
-        暗色主题
-        <MoonOutlined style={{ marginLeft: '10px' }} />
-      </p>
-    </div>
-  )
-
-  // 跟随系统切换主题
-  const symtemTheme = (): void => {
-    const bodyEl = document.body
-    bodyEl.style.backgroundImage = `url(${data[0].pic})`
-    bodyEl.style.backgroundSize = 'cover'
-    bodyEl.style.backgroundRepeat = 'no-repeat'
-    bodyEl.style.backgroundPosition = 'center'
-    bodyEl.style.backdropFilter = 'blur(50px)'
-    document.documentElement.setAttribute('data-theme', 'dark')
-  }
-  const lightTheme = (value: string): void => {
-    document.body.style.backgroundImage = 'none'
-    document.documentElement.setAttribute('data-theme', value == 'light' ? 'light' : 'dark')
-  }
-
-  // 切换主题
-  const handleChangeTheme = (
-    value: string,
-    _e: React.MouseEvent<HTMLParagraphElement, MouseEvent>
-  ): void => {
-    setTheme(value)
-    const transitionAnimation = document.startViewTransition(() => {
-      value === 'system' ? symtemTheme() : lightTheme(value)
-    })
-    transitionAnimation.ready.then(() => {
-      //先获取到鼠标的位置
-      const { clientX, clientY } = _e
-      // 计算半径，以鼠标点击的位置为圆心，到四个角的距离中最大的那个作为半径
-      const radius = Math.hypot(
-        Math.max(clientX, window.innerWidth - clientX),
-        Math.max(clientY, window.innerHeight - clientY)
-      )
-      // 自定义动画
-      document.documentElement.animate(
-        {
-          clipPath: [
-            `circle(0% at ${clientX}px ${clientY}px)`,
-            `circle(${radius}px at ${clientX}px ${clientY}px)`
-          ]
-        },
-        {
-          duration: 500,
-          pseudoElement: '::view-transition-new(root)'
-        }
-      )
-    })
-  }
+  const audio = useMemo(() => createAudio(data[musicCurrentPlay]?.url), [])
 
   // 自定义Hook获取音频的当前时间和总时长
-  const { currentTime: musicCurrentTime, totalTime: musicTotalTime } = useAudioTime(audio)
+  const { currentTime: musicCurrentTime, totalTime: musicTotalTime } = useAudioTime(
+    audio as HTMLAudioElement
+  )
 
   // 播放状态
   const [isPlaying, setIsPlaying] = useState(false)
   // 播放/暂停
   const handleTogglePlay = (): void => {
+    if (!audio) return
     setIsPlaying(!isPlaying)
     // 检查音频是否暂停,如果暂停，则播放, 正在播放，则暂停
     audio.paused ? audio.play() : audio.pause()
@@ -175,22 +105,75 @@ const AudioPlayer = (): React.JSX.Element => {
     document.addEventListener('mouseup', handleMouseUp)
 
     // 播放音频
-    if (audio.paused) {
+    if (audio && audio.paused) {
       audio.play()
       setIsPlaying(true)
     }
+  }
+
+  // 重置音频
+  const handleResetAudio = () => {
+    audio.pause()
+    setIsPlaying(false)
+    setProgress(0)
+    dispatch(updateMusicCurrentTime(0))
+  }
+
+  // 切换歌曲 下一首/上一首
+  const handleSwitchMusic = (type: 'next' | 'prev', number: number): void => {
+    messageApi.open({
+      type: 'success',
+      content: 'Action in progress..',
+      duration: 2.5
+    })
+
+    if (!audio) return
+    handleResetAudio() // 重置音频
+    if (type === 'next') {
+      if (musicCurrentPlay < data.length - 1) {
+        dispatch(updateMusicCurrentPlay(musicCurrentPlay + number))
+      } else {
+        messageApi.open({
+          type: 'success',
+          content: 'Action in progress..',
+          duration: 2.5
+        })
+      }
+    } else {
+      if (musicCurrentPlay > 0) {
+        dispatch(updateMusicCurrentPlay(musicCurrentPlay + number))
+      } else {
+        messageApi.open({
+          type: 'success',
+          content: 'Action in progress..',
+          duration: 2.5
+        })
+      }
+    }
+    audio.src = data[musicCurrentPlay + number].url
   }
 
   return (
     <>
       <div className={styles.audioPlayerControls}>
         <div className={styles.icons}>
-          <i className={`iconfont icon-shangyige ${styles.iconNext}`} onClick={() => {}}></i>
+          {contextHolder}
+          <i
+            className={`iconfont icon-shangyige ${styles.iconNext}`}
+            onClick={() => {
+              handleSwitchMusic('prev', -1)
+            }}
+          ></i>
           <i
             className={`iconfont ${isPlaying ? 'icon-zanting' : 'icon-icon_play'} ${styles.iconPlay}`}
             onClick={() => handleTogglePlay()}
           ></i>
-          <i className={`iconfont icon-xiayige ${styles.iconLast}`} onClick={() => {}}></i>
+          <i
+            className={`iconfont icon-xiayige ${styles.iconLast}`}
+            onClick={() => {
+              handleSwitchMusic('next', 1)
+            }}
+          ></i>
         </div>
         <div className={styles.audioPlayerProgressBar}>
           <div className={styles.infoTime}>
@@ -212,12 +195,10 @@ const AudioPlayer = (): React.JSX.Element => {
           </div>
         </div>
         <div className={styles.audioPlayerLeft}>
-          <i className={`iconfont icon-ziyuan ${styles.icon}`} onClick={() => {}}></i>
-          <i className={`iconfont icon-shengyin ${styles.icon}`} onClick={() => {}}></i>
-          <i className={`iconfont icon-caidan ${styles.icon}`} onClick={() => {}}></i>
-          <Popover content={options} title={'主题切换'} trigger="click" placement="topRight">
-            <i className={`iconfont icon-more ${styles.icon}`} onClick={() => {}}></i>
-          </Popover>
+          <i className="iconfont icon-ziyuan icon" onClick={() => {}}></i>
+          <i className="iconfont icon-shengyin icon" onClick={() => {}}></i>
+          <i className="iconfont icon-caidan icon" onClick={() => {}}></i>
+          <EVTheme />
         </div>
       </div>
     </>

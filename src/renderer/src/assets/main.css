@@ -11,8 +11,16 @@ body {
   box-sizing: border-box;
 }
 
-@media (max-width: 720px) {
-  .text {
-    font-size: 20px;
-  }
+.ant-input-outlined:hover {
+  border-color: var(--ec-c-bg-progress-bar) !important;
+}
+
+.ant-input-outlined:focus {
+  border-color: var(--ec-c-bg-progress-bar) !important;
+  box-shadow: none !important;
+}
+
+.ant-input-outlined:focus-within {
+  border-color: var(--ec-c-bg-progress-bar) !important;
+  box-shadow: none !important;
 }

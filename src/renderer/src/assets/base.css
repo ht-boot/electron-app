@@ -5,6 +5,7 @@
   --ec-c-bg-progress-bar: rgba(0, 0, 0, 0.2);
   --ec-c-bg-progress: rgba(0, 0, 0, 0.4);
   --ec-c-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  --ec-c-input: #f0f0f0;
 }
 
 /* 暗黑主题变量 */
@@ -15,12 +16,11 @@
   --ec-c-bg-progress-bar: rgba(255, 255, 255, 0.2);
   --ec-c-bg-progress: rgba(255, 255, 255, 0.4);
   --ec-c-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+  --ec-c-input: #f0f0f0;
 }
 
 :root {
   --ev-font-size: 16px;
-  --ev-font-size-sm: 14px;
-  --ev-font-size-lg: 18px;
   --ev-height: 80px;
   min-height: 100vh;
 }
@@ -62,4 +62,16 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon {
+  font-size: 20px !important;
+  width: 30px;
+  padding: 8px 15px;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: color 0.3s;
+  &:hover {
+    color: #888;
+  }
 }

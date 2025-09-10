@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
-import axios, { AxiosError } from 'axios'
+import axios from 'axios'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -51,7 +51,6 @@ ipcMain.handle('search-music', async (_event, keyword: string) => {
         }
       }
     )
-
     return resp.data // 把结果返回给渲染进程
   } catch (err: any) {
     console.error('请求出错：', err.message)

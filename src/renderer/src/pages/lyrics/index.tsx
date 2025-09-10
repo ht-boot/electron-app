@@ -1,29 +1,24 @@
-import React, { useMemo, useState, useEffect, useRef, memo } from 'react'
+import React, { useMemo, useEffect, useRef, memo } from 'react'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../store'
 import initLyrics from '../../utils/initLyrics'
 import styles from './index.module.less'
 
-// 假设在某个页面里
-const searchMusic = async (): Promise<void> => {
-  const data = await window.api.searchMusic('昙花一现雨及时')
-  console.log('搜索结果：', data)
-}
 interface LyricItem {
   t: number // 时间戳，应该是数字类型
   c: string // 歌词内容
 }
 const Home = (): React.JSX.Element => {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const { data } = useSelector((state: RootState) => state.base.musicList)
+  const data = useSelector((state: RootState) => state.base.musicList)
   const currentTime = useSelector((state: RootState) => state.base.musicCurrentTime)
+  const musicCurrentPlay = useSelector((state: RootState) => state.base.musicCurrentPlay)
   // 初始化歌词数据
   const lyrics = useMemo<LyricItem[]>(() => {
-    if (!data || !data[currentIndex] || !data[currentIndex].lrc) {
+    if (!data || !data[musicCurrentPlay] || !data[musicCurrentPlay].lrc) {
       return []
     }
-    return initLyrics(data[currentIndex].lrc) || []
-  }, [data, currentIndex])
+    return initLyrics(data[musicCurrentPlay].lrc) || []
+  }, [data, musicCurrentPlay])
 
   const lyricsRef = useRef<HTMLDivElement>(null) // 添加歌词容器的ref
   const activeLineRef = useRef<HTMLDivElement>(null) // 添加当前活动歌词行的ref
@@ -64,17 +59,16 @@ const Home = (): React.JSX.Element => {
   return (
     <>
       <div className={styles.home}>
-        <div onClick={() => searchMusic()}>加载</div>
         {/* 专辑封面展示区域 */}
         <div className={styles.album}>
-          <img src={data[currentIndex].pic} alt="" />
+          <img src={data[musicCurrentPlay].pic} alt="" />
         </div>
         {/* 歌曲信息容器 */}
         <div className={styles.songInfo}>
           {/* 歌曲名称 */}
-          <div className={styles.songName}>{data[currentIndex].title}</div>
+          <div className={styles.songName}>{data[musicCurrentPlay].title}</div>
           {/* 作者 */}
-          <div className={styles.author}>{data[currentIndex].author}</div>
+          <div className={styles.author}>{data[musicCurrentPlay].author}</div>
           {/* 歌词展示区域 */}
           <div className={styles.lyrics} ref={lyricsRef}>
             {lyrics && lyrics.length > 0 ? (

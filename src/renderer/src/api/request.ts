@@ -1,9 +1,7 @@
 import axios from 'axios'
 
-console.log(import.meta.env) // 打印环境变量
-
 // 获取浏览器地址 url
-const baseURL = window.location.origin
+const baseURL = 'https://music.iqwq.cn/'
 
 const service = axios.create({
   // 默认地址请求地址

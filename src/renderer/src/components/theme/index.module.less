@@ -1,0 +1,20 @@
+.options {
+  gap: 20px;
+  background-color: transparent;
+  .checkTheme {
+    cursor: pointer;
+    transition: color 0.3s;
+    margin: 4px 0;
+    &:hover {
+      color: #888;
+    }
+  }
+
+  .active::after {
+    content: '*';
+    color: #83b7ff;
+    font-size: 16px;
+    margin-left: 5px;
+    position: absolute;
+  }
+}

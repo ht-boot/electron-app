@@ -1,6 +1,6 @@
 import React from 'react'
 import { Layout } from 'antd'
-import AudioPlayer from '../audioPlayer/AudioPlayer'
+import AudioPlayer from '../audioPlayer/index'
 import styles from './index.module.less'
 import { Outlet } from 'react-router-dom'
 
