@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import styles from './index.module.less'
 import { Input } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
@@ -10,13 +10,6 @@ const AppBar = (): React.JSX.Element => {
   const [key, setKey] = useState('不要说话')
   const dispatch = useDispatch<AppDispatch>()
   // 歌曲查询
-  useEffect(() => {
-    const searchMusic = async (): Promise<void> => {
-      const { data } = await window.api.searchMusic(key)
-      dispatch(updateMusicList(data))
-    }
-    searchMusic()
-  }, [])
   const searchMusic = async (e: React.KeyboardEvent<HTMLInputElement>): Promise<void> => {
     const { data } = await window.api.searchMusic((e.target as HTMLInputElement).value)
     dispatch(updateMusicList(data))

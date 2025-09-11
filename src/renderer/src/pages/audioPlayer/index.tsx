@@ -1,4 +1,12 @@
-import React, { useMemo, useState, useEffect, useRef, memo } from 'react'
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+  memo,
+  useCallback,
+  useLayoutEffect
+} from 'react'
 import { message } from 'antd'
 import useAudioTime from '../../hooks/useAudioTime'
 import createAudio from '../../utils/createAudio'
@@ -13,6 +21,8 @@ const AudioPlayer = (): React.JSX.Element => {
   const musicCurrentPlay = useSelector((state: RootState) => state.base.musicCurrentPlay)
   const dispatch = useDispatch<AppDispatch>()
 
+  const isFirstLoad = useRef(true)
+
   const [messageApi, contextHolder] = message.useMessage()
 
   // 创建 Audio 对象, 进行函数缓存， 避免组件更新重复创建audio
@@ -23,7 +33,9 @@ const AudioPlayer = (): React.JSX.Element => {
     audio as HTMLAudioElement
   )
 
-  // 播放状态
+  /**
+   * @description 音乐播放状态
+   */
   const [isPlaying, setIsPlaying] = useState(false)
   // 播放/暂停
   const handleTogglePlay = (): void => {
@@ -33,10 +45,61 @@ const AudioPlayer = (): React.JSX.Element => {
     audio.paused ? audio.play() : audio.pause()
   }
 
+  /**
+   * @description 音乐声源受损，提示用户
+   */
+  useEffect(() => {
+    if (!audio) return
+
+    const handleError = (): void => {
+      messageApi.error('音频加载失败，请尝试其他歌曲')
+    }
+
+    audio.addEventListener('error', handleError)
+
+    return () => {
+      audio.removeEventListener('error', handleError)
+    }
+  }, [audio, messageApi])
+
+  /**
+   * @description 组件卸载时清理资源
+   */
+  useEffect(() => {
+    return () => {
+      if (audio) {
+        audio.pause()
+        audio.src = ''
+        audio.load()
+      }
+    }
+  }, [audio])
+
   // 播放进度条
   const progressRef = useRef<HTMLDivElement | null>(null)
   const [progress, setProgress] = useState(0)
 
+  /**
+   * @description 切换歌曲 下一首/上一首
+   */
+  const handleSwitchMusic = useCallback(
+    (number: number): void => {
+      if (!audio || !data || data.length === 0) return
+
+      const newIndex = musicCurrentPlay + number
+      if (newIndex < 0 || newIndex >= data.length) return
+
+      handleResetAudio() // 重置音频状态
+      dispatch(updateMusicCurrentPlay(newIndex))
+      audio.src = data[newIndex].url
+      audio.load()
+    },
+    [audio, data, musicCurrentPlay, dispatch]
+  )
+
+  /**
+   * @description 更新进度条
+   */
   useEffect(() => {
     if (!audio) return
     // 更新进度条
@@ -51,6 +114,8 @@ const AudioPlayer = (): React.JSX.Element => {
     // 更新播放状态
     const handleEnded = (): void => {
       setIsPlaying(false)
+      // 播放完毕，自动切换到下一首
+      handleSwitchMusic(1)
     }
 
     // 监听音频播放进度，更新进度条
@@ -62,9 +127,14 @@ const AudioPlayer = (): React.JSX.Element => {
       audio.removeEventListener('timeupdate', updateProgress)
       audio.removeEventListener('ended', handleEnded)
     }
-  }, [audio])
+  }, [audio, handleSwitchMusic])
 
-  // 点击/拖拽进度条，设置播放进度
+  /**
+   *
+   * @description 点击/拖拽进度条，设置播放进度
+   * @param e 鼠标事件
+   * @returns
+   */
   const handleProgressDrag = (e: React.MouseEvent<HTMLDivElement, MouseEvent>): void => {
     e.preventDefault()
 
@@ -111,46 +181,14 @@ const AudioPlayer = (): React.JSX.Element => {
     }
   }
 
-  // 重置音频
+  /**
+   * @description 重置音频
+   */
   const handleResetAudio = () => {
     audio.pause()
     setIsPlaying(false)
     setProgress(0)
     dispatch(updateMusicCurrentTime(0))
-  }
-
-  // 切换歌曲 下一首/上一首
-  const handleSwitchMusic = (type: 'next' | 'prev', number: number): void => {
-    messageApi.open({
-      type: 'success',
-      content: 'Action in progress..',
-      duration: 2.5
-    })
-
-    if (!audio) return
-    handleResetAudio() // 重置音频
-    if (type === 'next') {
-      if (musicCurrentPlay < data.length - 1) {
-        dispatch(updateMusicCurrentPlay(musicCurrentPlay + number))
-      } else {
-        messageApi.open({
-          type: 'success',
-          content: 'Action in progress..',
-          duration: 2.5
-        })
-      }
-    } else {
-      if (musicCurrentPlay > 0) {
-        dispatch(updateMusicCurrentPlay(musicCurrentPlay + number))
-      } else {
-        messageApi.open({
-          type: 'success',
-          content: 'Action in progress..',
-          duration: 2.5
-        })
-      }
-    }
-    audio.src = data[musicCurrentPlay + number].url
   }
 
   return (
@@ -161,7 +199,7 @@ const AudioPlayer = (): React.JSX.Element => {
           <i
             className={`iconfont icon-shangyige ${styles.iconNext}`}
             onClick={() => {
-              handleSwitchMusic('prev', -1)
+              handleSwitchMusic(-1)
             }}
           ></i>
           <i
@@ -171,7 +209,7 @@ const AudioPlayer = (): React.JSX.Element => {
           <i
             className={`iconfont icon-xiayige ${styles.iconLast}`}
             onClick={() => {
-              handleSwitchMusic('next', 1)
+              handleSwitchMusic(1)
             }}
           ></i>
         </div>
