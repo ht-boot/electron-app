@@ -7,6 +7,7 @@
   --bg-color-theme-1: #b5b4b4;
   --bg-color-theme-2: #615f5f;
   --hover-color: rgba(0, 0, 0, 0.1);
+  --text-color-hover: #666666;
 }
 
 :root[data-theme='dark'] {
@@ -18,15 +19,17 @@
   --bg-color-theme-2: #514f4f;
   --disabled-color: #dad9d9;
   --hover-color: rgba(255, 255, 255, 0.1);
+  --text-color-hover: #666666;
 }
 
 :root[data-theme='system'] {
-  --text-color: #444;
-  --text-color-secondary: #666666;
+  --text-color: #cc7e77;
+  --text-color-secondary: rgba(0, 0, 0, 0.5);
   --disabled-color: #c7c7c7;
-  --bg-color-theme-1: #e8e2e4;
-  --bg-color-theme-2: #929191;
-  --hover-color: rgba(255, 255, 255, 0.1);
+  --bg-color-theme-1: #f3d9d6;
+  --bg-color-theme-2: #cc7e77;
+  --hover-color: #9a505d;
+  --text-color-hover: #9a505d;
 }
 
 :root {
@@ -80,13 +83,13 @@ body {
 
 .icon {
   font-size: 20px !important;
-  width: 30px;
+  width: auto;
   padding: 8px 15px;
   box-sizing: border-box;
   cursor: pointer;
   transition: color 0.3s;
   &:hover {
-    color: var(--disabled-color);
+    color: var(--text-color-hover);
   }
 }
 

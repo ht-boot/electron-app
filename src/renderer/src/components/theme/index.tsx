@@ -6,7 +6,7 @@ import { RootState } from '@renderer/store'
 import styles from './index.module.less'
 
 const EVTheme = (): React.JSX.Element => {
-  const [theme, setTheme] = useState<string>('system')
+  const [theme, setTheme] = useState<string>('dark')
   const data = useSelector((state: RootState) => state.base.musicList)
   const musicCurrentPlay = useSelector((state: RootState) => state.base.musicCurrentPlay)
 
@@ -84,8 +84,8 @@ const EVTheme = (): React.JSX.Element => {
     if (savedTheme === 'system') {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
 
-      const setSystemTheme = (e: MediaQueryListEvent | MediaQueryList) => {
-        handleCheckTheme(e.matches ? 'dark' : 'light')
+      const setSystemTheme = (_e: MediaQueryListEvent | MediaQueryList) => {
+        handleCheckTheme('system')
         handleSetBg('system')
       }
 
@@ -96,7 +96,7 @@ const EVTheme = (): React.JSX.Element => {
         prefersDark.removeEventListener('change', setSystemTheme)
       }
     } else {
-      handleCheckTheme(savedTheme as 'light' | 'dark')
+      handleCheckTheme(savedTheme as 'light' | 'dark' | 'system')
       handleSetBg(savedTheme)
       return undefined
     }

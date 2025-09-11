@@ -5,7 +5,8 @@ import { updateMusicCurrentTime, updateMusicCurrentPlay } from '../../store/base
 import { useSelector, useDispatch } from 'react-redux'
 import { RootState, AppDispatch } from '@renderer/store'
 import EVTheme from '../../components/theme'
-import EVMenu from '../../components/menu'
+import EVMenu from '../menu'
+import EVSound from '../../components/systemSound'
 import styles from './index.module.less'
 
 const formatTime = (seconds = 0): string => {
@@ -62,12 +63,21 @@ const AudioPlayer = (): React.JSX.Element => {
     const onPause = () => setIsPlaying(false)
     const onError = () => {
       setIsPlaying(false)
-      messageApi.error('音频加载失败，请尝试其他歌曲')
+      messageApi.error('音频加载失败，以为您跳转下一首')
+
+      if (musicCurrentPlay + 1 >= data.length - 1) {
+        dispatch(updateMusicCurrentPlay(0))
+        return
+      }
       dispatch(updateMusicCurrentPlay(musicCurrentPlay + 1))
     }
     const onEnded = () => {
       setIsPlaying(false)
       // 自动下一首
+      if (musicCurrentPlay + 1 >= data.length - 1) {
+        dispatch(updateMusicCurrentPlay(0))
+        return
+      }
       dispatch(updateMusicCurrentPlay(musicCurrentPlay + 1))
     }
 
@@ -161,7 +171,16 @@ const AudioPlayer = (): React.JSX.Element => {
     (delta: number) => {
       if (!data || !data.length) return
       const newIndex = musicCurrentPlay + delta
-      if (newIndex < 0 || newIndex >= data.length) return
+      if (newIndex < 0 || newIndex >= data.length) {
+        if (delta > 0) {
+          // 下一首
+          dispatch(updateMusicCurrentPlay(0))
+        } else {
+          // 上一首
+          dispatch(updateMusicCurrentPlay(data.length - 1))
+        }
+        return
+      }
       // 通过改变 redux 的 musicCurrentPlay 来触发上面的 effect 重建 audio
       dispatch(updateMusicCurrentPlay(newIndex))
     },
@@ -300,7 +319,7 @@ const AudioPlayer = (): React.JSX.Element => {
 
         <div className={styles.audioPlayerLeft}>
           <i className="iconfont icon-ziyuan icon" />
-          <i className="iconfont icon-shengyin icon" />
+          <EVSound />
           <EVMenu />
           <EVTheme />
         </div>

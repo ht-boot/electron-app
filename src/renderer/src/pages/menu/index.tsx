@@ -1,7 +1,8 @@
 import React, { forwardRef, useImperativeHandle, useState, memo } from 'react'
 import { Drawer } from 'antd'
-import { useSelector, useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { RootState, AppDispatch } from '@renderer/store'
+import { updateMusicCurrentPlay } from '../../store/baseSlice/base'
 import styles from './index.module.less'
 
 interface ChildRef {
@@ -9,6 +10,10 @@ interface ChildRef {
 }
 const EVMenu = forwardRef<ChildRef>((_props, ref): React.JSX.Element => {
   const data = useSelector((state: RootState) => state.base.musicList)
+  const musicCurrentPlay = useSelector((state: RootState) => state.base.musicCurrentPlay)
+
+  const dispatch = useDispatch<AppDispatch>()
+
   const [open, setOpen] = useState(false)
 
   const handleOpen = () => {
@@ -18,6 +23,12 @@ const EVMenu = forwardRef<ChildRef>((_props, ref): React.JSX.Element => {
   const handleClose = () => {
     setOpen(false)
   }
+
+  // 点击播放
+  const handleCheckPlay = (index: number) => {
+    dispatch(updateMusicCurrentPlay(index))
+  }
+
   // 暴露给父组件的方法
   useImperativeHandle(ref, () => ({
     handleClose,
@@ -42,7 +53,13 @@ const EVMenu = forwardRef<ChildRef>((_props, ref): React.JSX.Element => {
 
         {data.map((item, index) => {
           return (
-            <div className={styles.musicItem} key={index}>
+            <div
+              className={`${styles.musicItem} ${index === musicCurrentPlay ? styles.active : ''}`}
+              key={index}
+              onClick={() => {
+                handleCheckPlay(index)
+              }}
+            >
               <p className={styles.pic}>
                 <img src={item.pic} alt="" />
               </p>

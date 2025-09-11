@@ -3,7 +3,7 @@ import { Layout } from 'antd'
 import AudioPlayer from '../audioPlayer/index'
 import styles from './index.module.less'
 import { Outlet } from 'react-router-dom'
-import AppBar from '../../components/appBar/index'
+import TopBar from '../topBar/index'
 
 const { Content, Footer } = Layout
 
@@ -11,7 +11,7 @@ const AppLayout: React.FC = () => {
   return (
     <>
       <Layout style={{ backgroundColor: 'transparent' }}>
-        <AppBar />
+        <TopBar />
         <Content className={styles.content}>
           <Outlet /> {/* 路由出口 */}
         </Content>

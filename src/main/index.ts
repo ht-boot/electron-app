@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
 import axios from 'axios'
+import loudness from 'loudness'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -65,4 +66,19 @@ ipcMain.on('window-minimize', () => {
 
 ipcMain.on('window-close', () => {
   mainWindow?.close()
+})
+
+// 监听渲染进程的调用
+ipcMain.handle('get-volume', async () => {
+  return await loudness.getVolume()
+})
+
+ipcMain.handle('set-volume', async (_event, value: number) => {
+  await loudness.setVolume(value) // 0 ~ 100
+  return true
+})
+
+ipcMain.handle('mute', async (_event, mute: boolean) => {
+  await loudness.setMuted(mute)
+  return true
 })

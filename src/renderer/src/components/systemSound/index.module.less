@@ -1,0 +1,80 @@
+.container {
+  display: flex;
+  align-items: center;
+  .controller {
+    .slider {
+      width: 100px;
+      margin-left: -10px;
+      :global(.ant-slider-rail) {
+        background-color: var(--bg-color-theme-1);
+        height: 4px;
+        border-radius: 2px;
+      }
+
+      :global(.ant-slider-track) {
+        background-color: var(--bg-color-theme-2);
+        height: 4px;
+        border-radius: 2px;
+        transition: background 0.3s ease;
+      }
+
+      // 拖动小圆点
+      :global(.ant-slider-handle) {
+        width: 8px;
+        height: 8px;
+        transition: transform 0.2s ease;
+
+        &:hover {
+          border-color: transparent;
+          outline: none;
+        }
+      }
+
+      // 拖动时的小圆点
+      :global(.ant-slider-handle:active) {
+        transform: scale(1);
+        outline: none;
+        box-shadow: 0 0 0;
+      }
+
+      :global(.ant-slider-handle:hover::before) {
+        outline: none;
+        box-shadow: 0 0 0;
+      }
+
+      :global(.ant-slider-handle:hover::after) {
+        outline: none;
+        box-shadow: 0 0 0;
+      }
+      :global(.ant-slider-handle:active::after) {
+        outline: none;
+        box-shadow: 0 0 0;
+      }
+
+      :global(.ant-slider-handle::after) {
+        outline: none;
+        box-shadow: 0 0 0;
+        background-color: var(--bg-color-theme-2);
+      }
+
+      // :global(.ant-slider-handle::before) {
+      //   transform: scale(1);
+      // }
+
+      :global(.ant-slider-handle:active::before) {
+        outline: none;
+        box-shadow: 0 0 0;
+      }
+
+      // 轨道禁用状态
+      :global(.ant-slider-disabled .ant-slider-rail) {
+        background-color: #aaa;
+      }
+
+      // 提示浮层（隐藏）
+      :global(.ant-slider-tooltip) {
+        display: none;
+      }
+    }
+  }
+}
