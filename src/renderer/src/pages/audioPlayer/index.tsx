@@ -1,195 +1,262 @@
-import React, {
-  useMemo,
-  useState,
-  useEffect,
-  useRef,
-  memo,
-  useCallback,
-  useLayoutEffect
-} from 'react'
+import React, { useMemo, useState, useEffect, useRef, memo, useCallback } from 'react'
 import { message } from 'antd'
-import useAudioTime from '../../hooks/useAudioTime'
 import createAudio from '../../utils/createAudio'
 import { updateMusicCurrentTime, updateMusicCurrentPlay } from '../../store/baseSlice/base'
 import { useSelector, useDispatch } from 'react-redux'
 import { RootState, AppDispatch } from '@renderer/store'
 import EVTheme from '../../components/theme'
+import EVMenu from '../../components/menu'
 import styles from './index.module.less'
+
+const formatTime = (seconds = 0): string => {
+  if (!isFinite(seconds) || seconds <= 0) return '00:00'
+  const m = Math.floor(seconds / 60)
+  const s = Math.floor(seconds % 60)
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
 
 const AudioPlayer = (): React.JSX.Element => {
   const data = useSelector((state: RootState) => state.base.musicList)
   const musicCurrentPlay = useSelector((state: RootState) => state.base.musicCurrentPlay)
   const dispatch = useDispatch<AppDispatch>()
 
-  const isFirstLoad = useRef(true)
-
   const [messageApi, contextHolder] = message.useMessage()
 
-  // 创建 Audio 对象, 进行函数缓存， 避免组件更新重复创建audio
-  const audio = useMemo(() => createAudio(data[musicCurrentPlay]?.url), [])
+  // audio 实例用 ref 管理（每次切歌会重建实例）
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
-  // 自定义Hook获取音频的当前时间和总时长
-  const { currentTime: musicCurrentTime, totalTime: musicTotalTime } = useAudioTime(
-    audio as HTMLAudioElement
-  )
-
-  /**
-   * @description 音乐播放状态
-   */
+  // 本地 UI 状态
   const [isPlaying, setIsPlaying] = useState(false)
-  // 播放/暂停
-  const handleTogglePlay = (): void => {
-    if (!audio) return
-    setIsPlaying(!isPlaying)
-    // 检查音频是否暂停,如果暂停，则播放, 正在播放，则暂停
-    audio.paused ? audio.play() : audio.pause()
-  }
+  const [progress, setProgress] = useState(0) // 0-100
+  const [totalTime, setTotalTime] = useState(0)
 
-  /**
-   * @description 音乐声源受损，提示用户
-   */
+  // 记录拖拽前的播放状态，拖拽时暂停，结束后恢复
+  const wasPlayingRef = useRef(false)
+
+  // -------- 创建 / 切换 audio 实例 --------
   useEffect(() => {
-    if (!audio) return
+    if (!data || !data.length) return
 
-    const handleError = (): void => {
+    const url = data[musicCurrentPlay]?.url
+    if (!url) return
+
+    // 如果已存在 audio，先清理
+    if (audioRef.current) {
+      audioRef.current.pause()
+    }
+
+    // createAudio 返回 HTMLAudioElement
+    const audio = createAudio(url) as HTMLAudioElement
+    audioRef.current = audio
+
+    // 设置一些默认值
+    setIsPlaying(!audio.paused && !audio.ended)
+    setProgress(0)
+    setTotalTime(isFinite(audio.duration) ? audio.duration : 0)
+    dispatch(updateMusicCurrentTime(0))
+
+    const onLoadedMetadata = () => {
+      setTotalTime(audio.duration || 0)
+    }
+    const onPlay = () => setIsPlaying(true)
+    const onPause = () => setIsPlaying(false)
+    const onError = () => {
+      setIsPlaying(false)
       messageApi.error('音频加载失败，请尝试其他歌曲')
+      dispatch(updateMusicCurrentPlay(musicCurrentPlay + 1))
+    }
+    const onEnded = () => {
+      setIsPlaying(false)
+      // 自动下一首
+      dispatch(updateMusicCurrentPlay(musicCurrentPlay + 1))
     }
 
-    audio.addEventListener('error', handleError)
+    audio.addEventListener('loadedmetadata', onLoadedMetadata) // 元数据加载完成
+    audio.addEventListener('play', onPlay) // 开始播放
+    audio.addEventListener('pause', onPause) // 暂停
+    audio.addEventListener('error', onError) // 错误
+    audio.addEventListener('ended', onEnded) // 播放结束
+
+    // 切换自动播放新歌
+    audio.play().catch(() => {
+      /* 处理被阻止 */
+    })
 
     return () => {
-      audio.removeEventListener('error', handleError)
-    }
-  }, [audio, messageApi])
+      // 清理所有事件监听，停止并释放资源
+      if (!audioRef.current) return
+      audio.removeEventListener('loadedmetadata', onLoadedMetadata)
+      audio.removeEventListener('play', onPlay)
+      audio.removeEventListener('pause', onPause)
+      audio.removeEventListener('error', onError)
+      audio.removeEventListener('ended', onEnded)
 
-  /**
-   * @description 组件卸载时清理资源
-   */
-  useEffect(() => {
-    return () => {
-      if (audio) {
-        audio.pause()
-        audio.src = ''
-        audio.load()
-      }
-    }
-  }, [audio])
-
-  // 播放进度条
-  const progressRef = useRef<HTMLDivElement | null>(null)
-  const [progress, setProgress] = useState(0)
-
-  /**
-   * @description 切换歌曲 下一首/上一首
-   */
-  const handleSwitchMusic = useCallback(
-    (number: number): void => {
-      if (!audio || !data || data.length === 0) return
-
-      const newIndex = musicCurrentPlay + number
-      if (newIndex < 0 || newIndex >= data.length) return
-
-      handleResetAudio() // 重置音频状态
-      dispatch(updateMusicCurrentPlay(newIndex))
-      audio.src = data[newIndex].url
+      audio.pause()
+      audio.src = ''
       audio.load()
+      // 不把 audioRef.current 置 null 以免在正在卸载时读到 null race
+      audioRef.current = null
+    }
+    // 当 musicCurrentPlay 或 data 改变时重建音频
+  }, [data, musicCurrentPlay, dispatch, messageApi])
+
+  // -------- 用 requestAnimationFrame 做高频 UI 同步，并节流 dispatch 到 redux --------
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+
+    let rafId = 0
+    let lastDispatchTime = 0 // 记录最后一次 dispatch 的时间，用于节流
+    const DISPATCH_INTERVAL = 200 // ms，控制 dispatch 频率（调整可选）
+
+    const tick = () => {
+      const a = audioRef.current // audio
+      if (!a) {
+        rafId = requestAnimationFrame(tick)
+        return
+      }
+      const cur = a.currentTime || 0
+      const dur = isFinite(a.duration) ? a.duration : 0
+      setProgress(dur > 0 ? (cur / dur) * 100 : 0)
+      setTotalTime(dur)
+
+      const now = performance.now()
+      if (now - lastDispatchTime > DISPATCH_INTERVAL) {
+        // 将播放时间下发到 redux，节流以避免性能问题
+        dispatch(updateMusicCurrentTime(cur))
+        lastDispatchTime = now
+      }
+      rafId = requestAnimationFrame(tick)
+    }
+
+    rafId = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafId)
+  }, [dispatch, musicCurrentPlay]) // 重建 audio 时会重新运行
+
+  // -------- 播放 / 暂停 切换 --------
+  const handleTogglePlay = useCallback((): void => {
+    const audio = audioRef.current
+    if (!audio) return
+
+    if (audio.paused) {
+      // play 返回 promise，可能会被浏览器策略阻止
+      audio
+        .play()
+        .then(() => {
+          setIsPlaying(true)
+        })
+        .catch(() => {
+          setIsPlaying(false)
+          // 若被阻止（如未用户交互），可以提示或静默处理
+          messageApi.error('音频加载失败，请尝试其他歌曲')
+        })
+    } else {
+      audio.pause()
+      setIsPlaying(false)
+    }
+  }, [messageApi])
+
+  // -------- 切歌（上一/下一） --------
+  const handleSwitchMusic = useCallback(
+    (delta: number) => {
+      if (!data || !data.length) return
+      const newIndex = musicCurrentPlay + delta
+      if (newIndex < 0 || newIndex >= data.length) return
+      // 通过改变 redux 的 musicCurrentPlay 来触发上面的 effect 重建 audio
+      dispatch(updateMusicCurrentPlay(newIndex))
     },
-    [audio, data, musicCurrentPlay, dispatch]
+    [data, musicCurrentPlay, dispatch]
   )
 
-  /**
-   * @description 更新进度条
-   */
+  // -------- 进度条交互（点击/拖拽） --------
+  const progressRef = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
-    if (!audio) return
-    // 更新进度条
-    const updateProgress = (): void => {
-      if (audio && !audio.paused) {
-        setProgress((audio.currentTime / audio.duration) * 100)
-        // 实时传递当前播放时间到 Redux store
-        dispatch(updateMusicCurrentTime(audio.currentTime))
+    const el = progressRef.current
+    if (!el) return
+
+    let dragging = false
+
+    const onProgressDown = (e: PointerEvent) => {
+      e.preventDefault() // 防止拖拽时选中文字
+      dragging = true
+      el.setPointerCapture(e.pointerId) // 捕获 pointer 事件，防止事件冒泡到其他元素
+
+      const audio = audioRef.current
+      if (!audio) return
+      // 记录拖拽前播放状态并暂停
+      wasPlayingRef.current = !audio.paused && !audio.ended
+      if (!audio.paused) audio.pause()
+      // 更新进度
+      undateByProgress(e)
+    }
+
+    const onProgressMove = (e: PointerEvent) => {
+      if (!dragging) return
+      undateByProgress(e)
+    }
+
+    const onProgressUp = (e: PointerEvent) => {
+      if (!dragging) return
+      dragging = false
+      try {
+        el.releasePointerCapture(e.pointerId)
+      } catch (err) {
+        // ignore
+      }
+      // 恢复播放状态
+      const audio = audioRef.current
+      if (audio && wasPlayingRef.current) {
+        audio.play().catch(() => {
+          messageApi.warning('自动播放被浏览器阻止，请手动点击播放')
+        })
       }
     }
 
-    // 更新播放状态
-    const handleEnded = (): void => {
-      setIsPlaying(false)
-      // 播放完毕，自动切换到下一首
-      handleSwitchMusic(1)
-    }
-
-    // 监听音频播放进度，更新进度条
-    audio.addEventListener('timeupdate', updateProgress)
-    // 监听音频播放完毕事件，更新播放状态
-    audio.addEventListener('ended', handleEnded)
-
-    return () => {
-      audio.removeEventListener('timeupdate', updateProgress)
-      audio.removeEventListener('ended', handleEnded)
-    }
-  }, [audio, handleSwitchMusic])
-
-  /**
-   *
-   * @description 点击/拖拽进度条，设置播放进度
-   * @param e 鼠标事件
-   * @returns
-   */
-  const handleProgressDrag = (e: React.MouseEvent<HTMLDivElement, MouseEvent>): void => {
-    e.preventDefault()
-
-    if (!progressRef.current) return
-
-    // 获取进度条的宽度
-    const { width, left } = progressRef.current.getBoundingClientRect()
-    // 计算点击位置的比例
-    const pos = (e.clientX - left) / width
-
-    // 更新音频进度
-    if (audio) {
+    const undateByProgress = (e: PointerEvent) => {
+      const rect = el.getBoundingClientRect()
+      const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+      const audio = audioRef.current
+      if (!audio || !isFinite(audio.duration)) {
+        setProgress(pos * 100)
+        // 不能设置 currentTime
+        return
+      }
       audio.currentTime = pos * audio.duration
       setProgress(pos * 100)
+      // 立刻同步 redux，使歌词立刻响应
+      dispatch(updateMusicCurrentTime(audio.currentTime))
     }
-    // 添加全局事件监听器
-    const handleMouseMove = (moveEvent: MouseEvent): void => {
-      // 计算移动位置的比例，可能为负数
-      const movePos = (moveEvent.clientX - left) / width
-      // 限制在0-1范围内（处理负数的可能）
-      const pos = Math.max(0, Math.min(1, movePos))
-      // 重新更新音频进度
-      if (audio) {
-        audio.currentTime = pos * audio.duration
-        setProgress(pos * 100)
+
+    el.addEventListener('pointerdown', onProgressDown)
+    window.addEventListener('pointermove', onProgressMove)
+    window.addEventListener('pointerup', onProgressUp)
+
+    return () => {
+      el.removeEventListener('pointerdown', onProgressDown)
+      window.removeEventListener('pointermove', onProgressMove)
+      window.removeEventListener('pointerup', onProgressUp)
+    }
+  }, [dispatch, messageApi])
+
+  // -------- 组件卸载清理（确保 audio 释放） --------
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current.src = ''
+        audioRef.current.load()
+        audioRef.current = null
       }
-      console.log('move')
     }
+  }, [])
 
-    const handleMouseUp = (): void => {
-      // 移除事件监听器
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
-
-    // 添加事件监听器
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-
-    // 播放音频
-    if (audio && audio.paused) {
-      audio.play()
-      setIsPlaying(true)
-    }
-  }
-
-  /**
-   * @description 重置音频
-   */
-  const handleResetAudio = () => {
-    audio.pause()
-    setIsPlaying(false)
-    setProgress(0)
-    dispatch(updateMusicCurrentTime(0))
-  }
+  const musicCurrentTimeDisplay = useMemo(() => {
+    // 用 redux store 的时间显示，如果需要可从 redux 读取 currentTime 格式化
+    // 这里我们只用 local progress->time 或 totalTime
+    // 但为了简单，我用 progress * totalTime
+    const sec = (progress / 100) * (totalTime || 0)
+    return formatTime(sec)
+  }, [progress, totalTime])
 
   return (
     <>
@@ -198,44 +265,43 @@ const AudioPlayer = (): React.JSX.Element => {
           {contextHolder}
           <i
             className={`iconfont icon-shangyige ${styles.iconNext}`}
-            onClick={() => {
-              handleSwitchMusic(-1)
-            }}
-          ></i>
+            onClick={() => handleSwitchMusic(-1)}
+          />
           <i
             className={`iconfont ${isPlaying ? 'icon-zanting' : 'icon-icon_play'} ${styles.iconPlay}`}
             onClick={() => handleTogglePlay()}
-          ></i>
+          />
           <i
             className={`iconfont icon-xiayige ${styles.iconLast}`}
-            onClick={() => {
-              handleSwitchMusic(1)
-            }}
-          ></i>
+            onClick={() => handleSwitchMusic(1)}
+          />
         </div>
+
         <div className={styles.audioPlayerProgressBar}>
           <div className={styles.infoTime}>
             <div className={styles.songInfo}>
-              <span className={styles.songName}>{data[musicCurrentPlay].title}</span> -{' '}
-              <span className={styles.singer}>{data[musicCurrentPlay].author}</span>
+              <span className={styles.songName}>{data[musicCurrentPlay]?.title}</span> -{' '}
+              <span className={styles.singer}>
+                {data[musicCurrentPlay]?.author.length > 8
+                  ? data[musicCurrentPlay]?.author.substring(0, 8) + '...'
+                  : data[musicCurrentPlay]?.author || '-'}
+              </span>
             </div>
             <div className={styles.time}>
-              <span className={styles.currentTime}>{musicCurrentTime}</span> /{' '}
-              <span className={styles.totalTime}>{musicTotalTime}</span>
+              <span className={styles.currentTime}>{musicCurrentTimeDisplay}</span> /{' '}
+              <span className={styles.totalTime}>{formatTime(totalTime)}</span>
             </div>
           </div>
-          <div
-            ref={progressRef}
-            className={styles.progressBar}
-            onMouseDown={(e) => handleProgressDrag(e)}
-          >
-            <div className={styles.progress} style={{ width: `${progress}%` }}></div>
+
+          <div ref={progressRef} className={styles.progressBar}>
+            <div className={styles.progress} style={{ width: `${progress}%` }} />
           </div>
         </div>
+
         <div className={styles.audioPlayerLeft}>
-          <i className="iconfont icon-ziyuan icon" onClick={() => {}}></i>
-          <i className="iconfont icon-shengyin icon" onClick={() => {}}></i>
-          <i className="iconfont icon-caidan icon" onClick={() => {}}></i>
+          <i className="iconfont icon-ziyuan icon" />
+          <i className="iconfont icon-shengyin icon" />
+          <EVMenu />
           <EVTheme />
         </div>
       </div>

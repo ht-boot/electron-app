@@ -25,7 +25,7 @@ const initLyrics = (lrc: string): LyricLine[] | null => {
     const timeTags = cleanLine.match(/\[(\d+:\d+(?:\.\d+)?)\]/g) || [] // 匹配时间标签
     const content = cleanLine.replace(/\[.*?\]/g, '').trim() // 去除时间标签后的内容
 
-    // 如果时间标签为空，则认为是标签行（如 [ar:xxx] [ti:xxx]）
+    // 如果时间标签为空，则认为是标签行
     if (timeTags.length === 0) {
       // 解析标签 (如 [ar:xxx] [ti:xxx])
       const tag = cleanLine.match(/\[(\w+):(.*)\]/)
@@ -43,8 +43,6 @@ const initLyrics = (lrc: string): LyricLine[] | null => {
   })
 
   oLRC.ms.sort((a, b) => a.t - b.t)
-
-  console.log(oLRC.ms, 'oLRC.ms')
 
   return oLRC.ms
 }

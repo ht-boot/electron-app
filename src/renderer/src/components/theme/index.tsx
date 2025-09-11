@@ -1,93 +1,134 @@
 import { MoonOutlined, RedoOutlined, SunOutlined } from '@ant-design/icons'
 import { Popover } from 'antd'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import styles from './index.module.less'
 import { RootState } from '@renderer/store'
+import styles from './index.module.less'
 
 const EVTheme = (): React.JSX.Element => {
-  const [theme, setTheme] = useState<string>('light')
+  const [theme, setTheme] = useState<string>('system')
   const data = useSelector((state: RootState) => state.base.musicList)
   const musicCurrentPlay = useSelector((state: RootState) => state.base.musicCurrentPlay)
-  // 跟随系统切换主题
-  const symtemTheme = (): void => {
-    const bodyEl = document.body
-    bodyEl.style.backgroundImage = `url(${data[musicCurrentPlay].pic})`
-    bodyEl.style.backgroundSize = 'cover'
-    bodyEl.style.backgroundRepeat = 'no-repeat'
-    bodyEl.style.backgroundPosition = 'center'
-    bodyEl.style.backdropFilter = 'blur(50px)'
-    document.documentElement.setAttribute('data-theme', 'dark')
+
+  //  应用浅色/深色主题
+  const handleCheckTheme = (mode: 'light' | 'dark' | 'system') => {
+    document.documentElement.setAttribute('data-theme', mode)
   }
-  const lightTheme = (value: string): void => {
-    document.body.style.backgroundImage = 'none'
-    document.documentElement.setAttribute('data-theme', value == 'light' ? 'light' : 'dark')
+
+  // 设置背景（封面模糊）
+  const handleSetBg = (mode: string) => {
+    const url = data?.[musicCurrentPlay]?.pic
+    if (!url) {
+      document.body.style.removeProperty('--bg-image')
+      return
+    }
+
+    if (mode === 'system') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
+      if (prefersDark.matches) {
+        document.body.style.setProperty('--bg-image', `url(${url})`)
+      } else {
+        document.body.style.removeProperty('--bg-image')
+      }
+    } else {
+      document.body.style.removeProperty('--bg-image')
+    }
   }
 
   // 切换主题
-  const handleChangeTheme = (
-    value: string,
-    _e: React.MouseEvent<HTMLParagraphElement, MouseEvent>
-  ): void => {
+  const handleChangeTheme = (value: string, e: React.MouseEvent<any>) => {
     setTheme(value)
-    const transitionAnimation = document.startViewTransition(() => {
-      value === 'system' ? symtemTheme() : lightTheme(value)
-    })
-    transitionAnimation.ready.then(() => {
-      //先获取到鼠标的位置
-      const { clientX, clientY } = _e
-      // 计算半径，以鼠标点击的位置为圆心，到四个角的距离中最大的那个作为半径
-      const radius = Math.hypot(
-        Math.max(clientX, window.innerWidth - clientX),
-        Math.max(clientY, window.innerHeight - clientY)
-      )
-      // 自定义动画
-      document.documentElement.animate(
-        {
-          clipPath: [
-            `circle(0% at ${clientX}px ${clientY}px)`,
-            `circle(${radius}px at ${clientX}px ${clientY}px)`
-          ]
-        },
-        {
-          duration: 500,
-          pseudoElement: '::view-transition-new(root)'
-        }
-      )
-    })
+    localStorage.setItem('theme', value)
+
+    const handleChange = () => {
+      handleCheckTheme(value as 'light' | 'dark' | 'system')
+      handleSetBg(value)
+    }
+
+    //  背景切换动画 startViewTransition
+    if ((document as any).startViewTransition) {
+      const transition = (document as any).startViewTransition(() => {
+        handleChange()
+      })
+
+      transition.ready.then(() => {
+        const { clientX, clientY } = e
+        const radius = Math.hypot(
+          Math.max(clientX, window.innerWidth - clientX),
+          Math.max(clientY, window.innerHeight - clientY)
+        )
+        document.documentElement.animate(
+          {
+            clipPath: [
+              `circle(0% at ${clientX}px ${clientY}px)`,
+              `circle(${radius}px at ${clientX}px ${clientY}px)`
+            ]
+          },
+          {
+            duration: 500,
+            pseudoElement: '::view-transition-new(root)'
+          }
+        )
+      })
+    } else {
+      // 兼容 fallback
+      handleChange()
+    }
   }
+
+  // 初始化
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'system'
+    setTheme(savedTheme)
+
+    if (savedTheme === 'system') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
+
+      const setSystemTheme = (e: MediaQueryListEvent | MediaQueryList) => {
+        handleCheckTheme(e.matches ? 'dark' : 'light')
+        handleSetBg('system')
+      }
+
+      setSystemTheme(prefersDark)
+      prefersDark.addEventListener('change', setSystemTheme)
+
+      return () => {
+        prefersDark.removeEventListener('change', setSystemTheme)
+      }
+    } else {
+      handleCheckTheme(savedTheme as 'light' | 'dark')
+      handleSetBg(savedTheme)
+      return undefined
+    }
+  }, [musicCurrentPlay, data])
 
   const options = (
     <div className={styles.options}>
       <p
-        className={`${styles.checkTheme} ${theme == 'system' ? styles.active : ''}`}
-        onClick={(_e) => handleChangeTheme('system', _e)}
+        className={`${styles.checkTheme} ${theme === 'system' ? styles.active : ''}`}
+        onClick={(e) => handleChangeTheme('system', e)}
       >
-        跟随系统
-        <RedoOutlined style={{ marginLeft: '10px' }} />
+        跟随系统 <RedoOutlined style={{ marginLeft: '10px' }} />
       </p>
       <p
-        className={`${styles.checkTheme} ${theme == 'light' ? styles.active : ''}`}
-        onClick={(_e) => handleChangeTheme('light', _e)}
+        className={`${styles.checkTheme} ${theme === 'light' ? styles.active : ''}`}
+        onClick={(e) => handleChangeTheme('light', e)}
       >
-        浅色主题
-        <SunOutlined style={{ marginLeft: '10px' }} />
+        浅色主题 <SunOutlined style={{ marginLeft: '10px' }} />
       </p>
       <p
-        className={`${styles.checkTheme} ${theme == 'dark' ? styles.active : ''}`}
-        onClick={(_e) => handleChangeTheme('dark', _e)}
+        className={`${styles.checkTheme} ${theme === 'dark' ? styles.active : ''}`}
+        onClick={(e) => handleChangeTheme('dark', e)}
       >
-        暗色主题
-        <MoonOutlined style={{ marginLeft: '10px' }} />
+        暗色主题 <MoonOutlined style={{ marginLeft: '10px' }} />
       </p>
     </div>
   )
+
   return (
-    <>
-      <Popover content={options} title={'主题切换'} trigger="click" placement="topRight">
-        <i className="iconfont icon-more icon" onClick={() => {}}></i>
-      </Popover>
-    </>
+    <Popover content={options} title={'主题切换'} trigger="click" placement="topRight">
+      <i className="iconfont icon-more icon" />
+    </Popover>
   )
 }
 

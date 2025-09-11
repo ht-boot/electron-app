@@ -13,20 +13,48 @@
   -webkit-app-region: drag; /* 允许拖动 */
 
   .searchInput {
-    color: var(--ev-c-color);
+    color: var(--text-color-secondary);
     width: 30%;
     -webkit-app-region: no-drag; /* 输入框不可拖动 */
-    background-color: var(--ev-c-bg);
-    border-color: var(--ec-c-bg-progress-bar);
+    background-color: var(--bg-color-secondary);
+    border-color: var(--text-color-secondary);
   }
 
   input::placeholder {
-    color: var(--ec-c-bg-progress-bar);
+    color: var(--text-color-secondary);
   }
 
-  .buttons button {
+  .btns {
+    display: flex;
+    color: transparent;
     -webkit-app-region: no-drag; /* 按钮不可拖动 */
     margin-left: 5px;
+    .mini,
+    .close {
+      width: 15px;
+      height: 15px;
+      margin: 0 4px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.3s;
+      font-size: 8px;
+    }
+    .mini {
+      background: #ecd92f;
+      color: transparent !important;
+    }
+    .close {
+      background: #f4494c;
+      color: transparent !important;
+    }
+    &:hover .close,
+    &:hover .mini {
+      color: #555 !important;
+      font-weight: 900;
+    }
   }
 
   .logo {
