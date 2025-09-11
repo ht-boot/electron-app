@@ -58,8 +58,7 @@ ipcMain.handle('search-music', async (_event, keyword: string) => {
   }
 })
 
-// 监听渲染进程请求
-
+// 监听渲染进程请求最小化窗口
 ipcMain.on('window-minimize', () => {
   mainWindow?.minimize()
 })

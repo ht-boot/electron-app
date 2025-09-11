@@ -5,7 +5,7 @@ import initLyrics from '../../utils/initLyrics'
 import styles from './index.module.less'
 
 interface LyricItem {
-  t: number // 时间戳，应该是数字类型
+  t: number // 时间戳，数字类型
   c: string // 歌词内容
 }
 const Home = (): React.JSX.Element => {
@@ -20,37 +20,29 @@ const Home = (): React.JSX.Element => {
     return initLyrics(data[musicCurrentPlay].lrc) || []
   }, [data, musicCurrentPlay])
 
-  const lyricsRef = useRef<HTMLDivElement>(null) // 添加歌词容器的ref
   const activeLineRef = useRef<HTMLDivElement>(null) // 添加当前活动歌词行的ref
 
   // 监听当前播放时间变化，实现歌词滚动
+  const prevActiveIndex = useRef<number>(-1)
+  const LYRICS_OFFSET = -0.5 // 单位秒，可以手动调节
+
   useEffect(() => {
-    if (!lyricsRef.current) return
-    const container = lyricsRef.current
+    if (!lyrics.length) return
 
-    // 如果当前没有活动行，则滚动到顶部
-    if (!activeLineRef.current) {
-      container.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      })
-      return
-    }
-    // 获取歌词容器和歌词提示行的位置信息
-    const activeLine = activeLineRef.current
-
-    // 计算滚动位置，使活动歌词行滚动到容器中央
-    const containerHeight = container.clientHeight
-    const activeLineTop = activeLine.offsetTop
-    const activeLineHeight = activeLine.clientHeight
-    const scrollTo = activeLineTop - containerHeight / 2 - activeLineHeight
-
-    // 平滑滚动到计算的位置
-    container.scrollTo({
-      top: scrollTo,
-      behavior: 'smooth'
+    const current = currentTime + LYRICS_OFFSET // 当前播放时间
+    const index = lyrics.findIndex((item, i) => {
+      const next = lyrics[i + 1]?.t ?? Infinity
+      return current >= item.t && current < next
     })
-  }, [currentTime]) // 当当前播放时间变化时触发
+
+    if (index !== -1 && index !== prevActiveIndex.current) {
+      prevActiveIndex.current = index
+      activeLineRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      })
+    }
+  }, [currentTime, lyrics])
 
   // const handleCheckLyric = (time: number): void => {
   //   dispatch(updateMusicCurrentTime(time))
@@ -70,14 +62,13 @@ const Home = (): React.JSX.Element => {
           {/* 作者 */}
           <div className={styles.author}>{data[musicCurrentPlay].author}</div>
           {/* 歌词展示区域 */}
-          <div className={styles.lyrics} ref={lyricsRef}>
+          <div className={styles.lyrics}>
             {lyrics && lyrics.length > 0 ? (
               lyrics.map((item, index) => {
                 // 检查当前行是否是活动行
-                const isActive =
-                  item.t <= parseFloat(currentTime.toFixed(2)) &&
-                  (index === lyrics.length - 1 ||
-                    lyrics[index + 1]?.t > parseFloat(currentTime.toFixed(2)))
+                const current = parseFloat(currentTime.toFixed(2))
+                const next = lyrics[index + 1]?.t ?? Infinity
+                const isActive = current >= item.t - 0.2 && current < next - 0.2
 
                 return (
                   <div
