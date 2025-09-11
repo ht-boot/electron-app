@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { updateMusicList } from '../../store/baseSlice/base'
 
 const Loading = (): React.JSX.Element => {
-  const [key, setKey] = useState('不要说话')
+  const [key, setKey] = useState('普通女孩')
   const [isLoading, setIsLoading] = useState(true)
   const navigate = useNavigate()
   const dispatch = useDispatch()

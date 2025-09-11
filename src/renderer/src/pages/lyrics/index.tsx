@@ -68,7 +68,7 @@ const Home = (): React.JSX.Element => {
                 // 检查当前行是否是活动行
                 const current = parseFloat(currentTime.toFixed(2))
                 const next = lyrics[index + 1]?.t ?? Infinity
-                const isActive = current >= item.t - 0.2 && current < next - 0.2
+                const isActive = current >= item.t + LYRICS_OFFSET && current < next + LYRICS_OFFSET
 
                 return (
                   <div
