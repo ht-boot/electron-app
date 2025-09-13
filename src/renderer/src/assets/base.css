@@ -93,6 +93,100 @@ body {
   }
 }
 
+.logo {
+  -webkit-app-region: no-drag; /* logo不可拖动 */
+  --logo-height: 28px;
+  width: 42px;
+  height: var(--logo-height);
+  background-color: #cb4154;
+  border-radius: 6px;
+  text-align: center;
+  line-height: var(--logo-height);
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.animation-logo {
+  animation: shake-vertical 3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both infinite;
+}
+
+.animation-logo-2:hover {
+  animation: shake-lr 1s cubic-bezier(0.455, 0.03, 0.515, 0.955) both infinite;
+}
+
+@keyframes shake-vertical {
+  0%,
+  100% {
+    -webkit-transform: translateY(0);
+    transform: translateY(0);
+  }
+  10%,
+  30%,
+  50%,
+  70% {
+    -webkit-transform: translateY(-6px);
+    transform: translateY(-6px);
+  }
+  20%,
+  40%,
+  60% {
+    -webkit-transform: translateY(6px);
+    transform: translateY(6px);
+  }
+  80% {
+    -webkit-transform: translateY(6.4px);
+    transform: translateY(6.4px);
+  }
+  90% {
+    -webkit-transform: translateY(-6.4px);
+    transform: translateY(-6.4px);
+  }
+}
+
+@keyframes shake-lr {
+  0%,
+  100% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+    -webkit-transform-origin: 50% 50%;
+    transform-origin: 50% 50%;
+  }
+  10% {
+    -webkit-transform: rotate(8deg);
+    transform: rotate(8deg);
+  }
+  20%,
+  40%,
+  60% {
+    -webkit-transform: rotate(-10deg);
+    transform: rotate(-10deg);
+  }
+  30%,
+  50%,
+  70% {
+    -webkit-transform: rotate(10deg);
+    transform: rotate(10deg);
+  }
+  80% {
+    -webkit-transform: rotate(-8deg);
+    transform: rotate(-8deg);
+  }
+  90% {
+    -webkit-transform: rotate(8deg);
+    transform: rotate(8deg);
+  }
+}
+
+.text-ellipsis {
+  width: fit-content; /* 或者固定宽度 */
+  max-width: 6em; /* 每个中文大概占 1em，这里限制为 4 个字 */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 /* 整个滚动条 */
 ::-webkit-scrollbar {
   width: 4px; /* 垂直滚动条宽度 */

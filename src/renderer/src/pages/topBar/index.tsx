@@ -9,6 +9,7 @@ import {
   updateMusicCurrentTime
 } from '../../store/baseSlice/base'
 import { useDispatch } from 'react-redux'
+import EVWinOperation from '@renderer/components/winOperation'
 
 const TopBar = (): React.JSX.Element => {
   const [key, setKey] = useState('普通女孩')
@@ -46,16 +47,15 @@ const TopBar = (): React.JSX.Element => {
     }
   }
 
-  const handleMinimize = () => {
-    window.electronAPI.minimize()
-  }
-  const handleClose = () => {
-    window.electronAPI.close()
+  const handleDisplayMenu = (): void => {
+    console.log(1234)
   }
 
   return (
     <div className={styles.appBar}>
-      <div className={styles.logo}>logo</div>
+      <div className="logo animation-logo-2" onClick={() => handleDisplayMenu()}>
+        tnQ
+      </div>
       {contextHolder}
 
       <Input
@@ -69,8 +69,7 @@ const TopBar = (): React.JSX.Element => {
       />
 
       <div className={styles.btns}>
-        <MinusOutlined className={styles.mini} onClick={handleMinimize} />
-        <CloseOutlined className={styles.close} onClick={handleClose} />
+        <EVWinOperation />
       </div>
     </div>
   )

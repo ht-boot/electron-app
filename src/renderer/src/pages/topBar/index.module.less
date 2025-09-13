@@ -24,45 +24,4 @@
   input::placeholder {
     color: var(--text-color-secondary);
   }
-
-  .btns {
-    display: flex;
-    color: transparent;
-    -webkit-app-region: no-drag; /* 按钮不可拖动 */
-    margin-left: 5px;
-    .mini,
-    .close {
-      width: 15px;
-      height: 15px;
-      margin: 0 4px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: color 0.3s;
-      font-size: 8px;
-    }
-    .mini {
-      background: #ecd92f;
-      color: transparent !important;
-    }
-    .close {
-      background: #f4494c;
-      color: transparent !important;
-    }
-    &:hover .close,
-    &:hover .mini {
-      color: #555 !important;
-      font-weight: 900;
-    }
-  }
-
-  .logo {
-    -webkit-app-region: no-drag; /* logo不可拖动 */
-    width: 26px;
-    height: 26px;
-    color: #26725e;
-    fill: currentColor;
-  }
 }

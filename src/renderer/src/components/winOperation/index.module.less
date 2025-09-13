@@ -1,0 +1,39 @@
+.winOperation {
+  -webkit-app-region: no-drag; /* 按钮不可拖动 */
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 30px;
+  padding: 0 10px;
+  background-color: transparent;
+  z-index: 999;
+  .mini,
+  .close {
+    width: 15px;
+    height: 15px;
+    margin: 0 4px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s;
+    font-size: 8px;
+  }
+  .mini {
+    background: #ecd92f;
+    color: transparent !important;
+  }
+  .close {
+    background: #f4494c;
+    color: transparent !important;
+  }
+  &:hover .close,
+  &:hover .mini {
+    color: #555 !important;
+    font-weight: 900;
+  }
+}
