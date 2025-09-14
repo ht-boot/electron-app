@@ -6,7 +6,7 @@ import EVLoading from './loading'
 import EVWinOperation from '@renderer/components/winOperation'
 
 const Loading = (): React.JSX.Element => {
-  const [key, setKey] = useState('普通女孩') // 默认搜索关键词
+  const [key] = useState('普通女孩') // 默认搜索关键词
   const navigate = useNavigate()
   const dispatch = useDispatch()
 

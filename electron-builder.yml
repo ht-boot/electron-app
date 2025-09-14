@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: electron-app
+appId: tnQ.com.electron.app
+productName: tnQ
 directories:
   buildResources: build
 files:

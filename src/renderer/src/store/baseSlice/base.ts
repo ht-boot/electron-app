@@ -1,14 +1,5 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit'
 
-interface MusicData {
-  type: string
-  title: string
-  author: string
-  lrc: string
-  url: string
-  pic: string
-  [key: string]: any
-}
 // 定义异步获取音乐的 thunk
 // export const fetchMusicList = createAsyncThunk('base/fetchMusicList', async () => {})
 

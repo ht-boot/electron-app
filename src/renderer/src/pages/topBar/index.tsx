@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import styles from './index.module.less'
 import { Input, message } from 'antd'
-import { CloseOutlined, MinusOutlined, SearchOutlined } from '@ant-design/icons'
+import { SearchOutlined } from '@ant-design/icons'
 import { AppDispatch } from '@renderer/store'
 import {
   updateMusicList,
